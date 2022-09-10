@@ -1,0 +1,52 @@
+version: '3'
+
+networks:
+  default:
+    external:
+      name: webapp
+
+volumes:
+  volgusmysql:
+
+services:
+  youtube_nginx:
+    image: nginx:stable-alpine
+    container_name: youtube_nginx
+    restart: always
+    ports:
+      - 2052:80
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:rw
+    depends_on:
+      - youtube_php
+      - youtube_mysql
+
+  youtube_php:
+    build:
+      context: ./docker
+      dockerfile: php.dockerfile
+    image: voipgus/meuphp
+    container_name: youtube_php
+    restart: always
+    volumes:
+      - ./:/var/www/html
+    #ports:
+    #- 9001:9000 #### atencao aqui deixar sempre :9000
+
+  youtube_mysql:
+    #image: mysql:8.0
+    image: mariadb:latest
+    container_name: youtube_mysql
+    restart: always
+    tty: true
+    #ports:
+    #  - 3310:3306
+    volumes:
+      #- ./docker/mysql:/var/lib/mysql/data
+      - volgusmysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: youtube
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123
+      MYSQL_ROOT_PASSWORD: 123
